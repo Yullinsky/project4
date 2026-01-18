@@ -1,0 +1,28 @@
+{% extends "network/layout.html" %}
+
+{% block body %}<!--
+    <div class="followers">
+        <div class="number-of-followers">
+            <h4>Followers: </h4>
+            <p> {{ followers }}</p>
+        </div>
+
+        {% if user.is_authenticated and user != current_user_page %}
+            {% if current_user_page.user is followed %}
+                <button id="followButton" class="btn btn-primary"> Follow </button>
+            {% elif %}
+                <button id="unfollowButton" class="btn btn-danger"> Unfollow </button>
+            {% endif %}
+        {% endif %} 
+    </div> 
+    <div class="posts">
+        Poner todos los post en orden cronológico
+    </did> -->
+{% endblock %}
+
+<!--
+Profile Page: Clicking on a username should load that users profile page. This page should:
+    Display the number of followers the user has, as well as the number of people that the user follows.
+    Display all of the posts for that user, in reverse chronological order.
+    For any other user who is signed in, this page should also display a “Follow” or “Unfollow” button that will let the current user toggle whether or not they are following this user’s posts. Note that this only applies to any “other” user: a user should not be able to follow themselves.
+-->
