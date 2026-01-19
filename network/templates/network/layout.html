@@ -8,10 +8,9 @@
         <link href="{% static 'network/styles.css' %}" rel="stylesheet">
     </head>
     <body>
-
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <a class="navbar-brand" href="#">Network</a>
-          
+            
             <div>
               <ul class="navbar-nav mr-auto">
                 {% if user.is_authenticated %}
@@ -29,6 +28,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
                     </li>
+                    <li class="nav-item">
+                        <button id="new-post" class="btn btn-primary"> New Post </button>
+                    </li> 
                 {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'login' %}">Log In</a>
