@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -62,5 +63,22 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
-def new_post(request):
-    return render(request, "network/newpost.html")
+def create_post_page(request):
+    return render(request, "network/create.html")
+
+@login_required
+def create_post(request):
+    if request.method == "POST":
+        content = request.POST.get("content")
+
+        if not content or not title:
+            return   HttpResponseRedirect(reverse("index"))
+        
+        new_post = new_post(
+            user = request.user,
+            body = content
+        )
+        new_post.save()
+
+        return HttpResponseRedirect(reverse("index"))
+    return HttpResponseRedirect(reverse("index"))

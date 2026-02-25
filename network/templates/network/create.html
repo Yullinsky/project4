@@ -1,0 +1,14 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+        <form> 
+            <label for="post-title">Post title</label>
+            <input id="post-title" name="post-title">
+            <label for "content">Content</label>
+            <textarea id="content" name="content" rows="10" cols="64">  
+        </form> 
+    {% else %}
+
+    {% endif %}
+{% endblock %}

@@ -29,7 +29,7 @@
                         <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
                     </li>
                     <li class="nav-item">
-                        <button id="new-post" class="btn btn-primary"> New Post </button>
+                        <a id="new-post" class="btn btn-primary" href="{% url 'create-post' %}">New Post</a>
                     </li> 
                 {% else %}
                     <li class="nav-item">
