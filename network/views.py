@@ -70,12 +70,14 @@ def create_post_page(request):
 def create_post(request):
     if request.method == "POST":
         content = request.POST.get("content")
+        title = request.POST.get("title")
 
         if not content or not title:
             return   HttpResponseRedirect(reverse("index"))
         
-        new_post = new_post(
+        p = Post(
             user = request.user,
+            title = title,
             body = content
         )
         new_post.save()
