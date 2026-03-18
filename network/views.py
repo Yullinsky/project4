@@ -67,26 +67,23 @@ def register(request):
         return render(request, "network/register.html")
 
 @login_required
-def create_post_page(request):
-    return render(request, "network/create.html")
-
 def create_post(request):
     if request.method == "POST":
-        content = request.POST.get("content")
+        body = request.POST.get("body")
         title = request.POST.get("title")
 
-        if not content or not title:
-            return   HttpResponseRedirect(reverse("index"))
+        if not body or not title:
+            return HttpResponseRedirect(reverse("index"))
         
-        new_post = Post(
-            user = request.user,
-            title = title,
-            body = content
+        post = Post(
+            user=request.user,
+            title=title,
+            body=body
         )
-        new_post.save()
+        post.save()
 
         return HttpResponseRedirect(reverse("index"))
-    return HttpResponseRedirect(reverse("index"))
+    return render(request, "network/create.html")
 
 def profile(request, username):
     usuario = User.objects.get(username=username)
