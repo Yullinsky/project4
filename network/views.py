@@ -2,10 +2,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
-from .models import User, Post
+from .models import User, Post, Follow
 
 
 def index(request):
@@ -66,10 +66,10 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
+@login_required
 def create_post_page(request):
     return render(request, "network/create.html")
 
-@login_required
 def create_post(request):
     if request.method == "POST":
         content = request.POST.get("content")
@@ -95,3 +95,22 @@ def profile(request, username):
         "perfil": usuario,
         "posts": publicaciones
     })
+
+def follow(request, username):
+    target_user = get_object_or_404(User, username=username)
+
+    if request.user == target_user:
+        return HttpResponseRedirect(reverse("profile", kwargs={"username": username}))
+    
+    follow_exists = Follow.object.filter(
+        user=request.user,
+        following=target_user
+    ).exists()
+
+    if follow_exists:
+        Follow.objects.filter(user=request.user, following=target_user).delete()
+    else:
+        new_follow = Follow(user=request.user, following=target_user)
+        new_follow.save()
+    
+    return HttpResponseRedirect(reverse("profile", kwargs={"username": username}))
