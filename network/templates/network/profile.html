@@ -1,6 +1,6 @@
 {% extends "network/layout.html" %}
 
-{% block body %}<!--
+{% block body %}
     <div class="followers">
         <div class="number-of-followers">
             <h4>Followers: </h4>
@@ -17,7 +17,17 @@
     </div> 
     <div class="posts">
         Poner todos los post en orden cronológico
-    </did> -->
+        {% for post in posts %}
+            <div class="card my-3 p-3 border">
+                <h5 class="card-title"><strong>{{ post.user.username }}</strong></h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ post.date_time }}</h6>
+                <p class="card-text">{{ post.body }}</p>
+                <p class="text-primary">Likes: 0</p>
+            </div>
+        {% empty %}
+            <p> No hay publicaciones todavía.</p>
+        {% endfor %}
+    </did> 
 {% endblock %}
 
 <!--

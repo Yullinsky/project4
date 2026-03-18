@@ -5,11 +5,14 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import User, Post
 
 
 def index(request):
-    return render(request, "network/index.html")
+    posts = Post.objects.all().order_by('-date_time')
+    return render(request, "network/index.html", {
+        "posts": posts
+    })
 
 
 def login_view(request):
@@ -75,7 +78,7 @@ def create_post(request):
         if not content or not title:
             return   HttpResponseRedirect(reverse("index"))
         
-        p = Post(
+        new_post = Post(
             user = request.user,
             title = title,
             body = content
@@ -84,3 +87,11 @@ def create_post(request):
 
         return HttpResponseRedirect(reverse("index"))
     return HttpResponseRedirect(reverse("index"))
+
+def profile(request, username):
+    usuario = User.objects.get(username=username)
+    publicaciones = Post.objects.filter(user=usuario).order_by("-date_time")
+    return render(request, "network/profile.html", {
+        "perfil": usuario,
+        "posts": publicaciones
+    })
