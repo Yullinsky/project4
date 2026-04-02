@@ -10,6 +10,7 @@ class Post(models.Model):
     body = models.TextField(max_length=640)
     date_time = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    likes = models.ManyToManyField(User, related_name="liked_posts", blank=True)
 
     def __str__(self):
         return f"{self.user.username}: {self.title}"

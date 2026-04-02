@@ -75,12 +75,12 @@ def create_post(request):
         if not body or not title:
             return HttpResponseRedirect(reverse("index"))
         
-        post = Post(
+        new_post = Post(
             user=request.user,
             title=title,
             body=body
         )
-        post.save()
+        new_post.save()
 
         return HttpResponseRedirect(reverse("index"))
     return render(request, "network/create.html")
@@ -99,7 +99,7 @@ def follow(request, username):
     if request.user == target_user:
         return HttpResponseRedirect(reverse("profile", kwargs={"username": username}))
     
-    follow_exists = Follow.object.filter(
+    follow_exists = Follow.objects.filter(
         user=request.user,
         following=target_user
     ).exists()
