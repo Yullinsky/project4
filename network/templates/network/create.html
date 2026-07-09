@@ -4,11 +4,9 @@
     {% if user.is_authenticated %}
         <form action="{% url 'create' %}" method="post">
             {% csrf_token %}
-            <div><label for="title">Post title</label></div>
-            <div><input id="title" name="title"></div>
             <div><label for "content">Content</label></div>
             <div><textarea id="content" name="content" rows="10" cols="64"></textarea></div>
-            <div><button type="submit" class="btn btn-primary">Postear</button></div>
+            <div><button type="submit" class="btn btn-primary">Post</button></div>
         </form> 
     {% else %}
 

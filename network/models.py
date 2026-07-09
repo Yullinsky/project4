@@ -6,18 +6,26 @@ class User(AbstractUser):
     pass
 
 class Post(models.Model):
-    title = models.CharField(max_length=64, blank=True)
     body = models.TextField(max_length=640)
     date_time = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     likes = models.ManyToManyField(User, related_name="liked_posts", blank=True)
 
     def __str__(self):
-        return f"{self.user.username}: {self.title}"
+        return f"{self.user.username}: {self.body[:50]}"
+    
+    def total_likes(self):
+        return self.likes.count()
 
 class Follow(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
-    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers")
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
+    followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers")
+
+    class Meta:
+        unique_together = ['follower', 'followed']
+    
+    def __str__(self):
+        return f"{self.follower} follows {self.followed}"
 '''
 class Likes(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

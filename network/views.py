@@ -1,19 +1,20 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+
+import json
 
 from .models import User, Post, Follow
+from .helpers import paginate
 
-
+# Autenticación
 def index(request):
-    posts = Post.objects.all().order_by('-date_time')
-    return render(request, "network/index.html", {
-        "posts": posts
-    })
-
+    page_obj = paginate(request, Post.objects.all().order_by('-date_time'))
+    return render(request, "network/index.html", {"page_obj": page_obj})
 
 def login_view(request):
     if request.method == "POST":
@@ -34,11 +35,9 @@ def login_view(request):
     else:
         return render(request, "network/login.html")
 
-
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
-
 
 def register(request):
     if request.method == "POST":
@@ -66,18 +65,20 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
+
+# Posts
 @login_required
 def create_post(request):
     if request.method == "POST":
-        body = request.POST.get("body")
-        title = request.POST.get("title")
+        body = request.POST.get("body", "").strip()
 
-        if not body or not title:
-            return HttpResponseRedirect(reverse("index"))
+        if not body:
+            return render(request, "network/create.html", {
+                "error": "Post cannot be empty"
+            })
         
         new_post = Post(
             user=request.user,
-            title=title,
             body=body
         )
         new_post.save()
@@ -85,29 +86,111 @@ def create_post(request):
         return HttpResponseRedirect(reverse("index"))
     return render(request, "network/create.html")
 
+def all_posts(request):
+    page_obj = paginate(request, Post.objects.all().order_by('-date_time'))
+    return render(request, "network/all_posts.html", {"page_obj": page_obj})
+
+@login_required
+def following(request):
+    following_users = Follow.objects.filter(follower=request.user).values_list('followed', flat=True)
+    posts = Post.objects.filter(user__in=following_users).order_by('-date_time')
+    
+    page_obj = paginate(request, posts)
+
+    return render(request, "network/following.html", {"page_obj": page_obj})
+
+# Perfil
 def profile(request, username):
-    usuario = User.objects.get(username=username)
-    publicaciones = Post.objects.filter(user=usuario).order_by("-date_time")
+    usuario = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(user=usuario).order_by("-date_time")
+    page_obj = paginate(request, posts)
+
     return render(request, "network/profile.html", {
         "perfil": usuario,
-        "posts": publicaciones
+        "page_obj": page_obj
     })
 
-def follow(request, username):
-    target_user = get_object_or_404(User, username=username)
+@login_required
+def follow_toggle(request, username):
+    user_to_follow = get_object_or_404(User, username=username)
 
-    if request.user == target_user:
-        return HttpResponseRedirect(reverse("profile", kwargs={"username": username}))
+    if request.user == user_to_follow:
+        return JsonResponse({"error": "Cannot follow yourself"}, status=400)
     
-    follow_exists = Follow.objects.filter(
-        user=request.user,
-        following=target_user
-    ).exists()
+    if request.method == "POST":
+        follow_obj = Follow.objects.filter(
+            follower=request.user,
+            followed=user_to_follow
+        )
 
-    if follow_exists:
-        Follow.objects.filter(user=request.user, following=target_user).delete()
-    else:
-        new_follow = Follow(user=request.user, following=target_user)
-        new_follow.save()
+        if follow_obj.exists():
+            follow_obj.delete()
+            is_following = False
+        else:
+            Follow.objects.create(
+                follower=request.user,
+                followed=user_to_follow
+            )
+            is_following = True
     
-    return HttpResponseRedirect(reverse("profile", kwargs={"username": username}))
+        return JsonResponse({
+            "is_following": is_following,
+            "followers_count": user_to_follow.followers.count()
+        })
+    
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+# Interacciones
+@csrf_exempt
+@login_required
+def like_post(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found"}, status=404)
+
+    if request.method == "POST":
+        if request.user in post.likes.all():
+            post.likes.remove(request.user)
+            liked = False
+        else:
+            post.likes.add(request.user)
+            liked = True
+        
+        return JsonResponse({
+            "likes": post.total_likes(),
+            "liked": liked
+        })
+    return JsonResponse({"error": "Invalid method"}, status=405)
+
+@csrf_exempt
+@login_required
+def edit_post(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found"}, status=404)
+
+    if post.user != request.user:
+        return JsonResponse({"error": "Not authorized"}, status=403)
+
+    if request.method == "PUT":
+        try:
+            data = json.loads(request.body)
+            content = data.get("content", "").strip()
+
+            if content:
+                post.body = content
+                post.save()
+                return JsonResponse({
+                    "success": True,
+                    "content": post.body,
+                    "timestamp": post.date_time.strftime("%B %d, %Y, %I:%M %p")
+                })
+            else:
+                return JsonResponse({"error": "Content cannot be empty"}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    return JsonResponse({"error": "Invalid method"}, status=405)
