@@ -2,29 +2,24 @@
 
 {% block body %}
     <div class="card">
-        <div.card-body>
-            <h3>{{ perfil.username }}</h3>
-            <div class="d-flex gap-4">
-                <div>
-                    <strong id="followers-count">
-                        followers: {{  followers_count  }}
-                    </strong> 
-                    <br/>
-                    <strong>
-                        following: {{  following_count  }}
-                    </strong>  
-                </div>
-            <div>
-            
-            {% if user.is_authenticated and user != perfil %}
-                <button id="follow-btn" onclick="toggleFollow('{{ perfil.username }}')" class="btn btn-primary mt-2">
-                    {% if is_following %}
-                        Unfollow
-                    {% else %}
-                        Follow
-                    {% endif %}
-                </button>
-            {% endif %}
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <h3>{{ perfil.username }}</h3>
+                {% if user.is_authenticated and user != perfil %}
+                    <button id="follow-btn" onclick="toggleFollow('{{ perfil.username }}')" class="btn btn-primary mt-2 float-right">
+                        {% if is_following %}
+                            Unfollow
+                        {% else %}
+                            Follow
+                        {% endif %}
+                    </button>
+                {% endif %}
+            </div>
+            <div class="gap-4">
+                <span>followers: <strong id="followers-count">{{  followers_count  }}</strong></span>
+                <br/>
+                <span>following: <strong>{{  following_count  }}</strong></span>
+            </div>
         </div> 
     </div>
 

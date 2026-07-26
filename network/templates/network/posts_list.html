@@ -12,7 +12,7 @@
             <div class="post-body" id="content-{{ post.id }}">{{ post.body|linebreaksbr }}</div>
 
             <div class="post-footer">
-                <span id="likes-count-{{  post.id  }}">{{ post.total_likes }} likes</span> 
+                <span id="likes-count-{{  post.id  }}">{{ post.total_likes }} </span> likes
 
                 {% if user.is_authenticated %}
                     <button onclick="toggleLike({{  post.id  }})" id="like-btn-{{  post.id  }}" class="btn btn-sm btn-outline-primary float-right">
@@ -61,10 +61,12 @@
         const contentDiv = document.getElementById(`content-${postId}`);
         const currentContent = contentDiv.textContent.trim();
 
+        contentDiv.dataset.originalContent = currentContent;
+
         contentDiv.innerHTML = `
             <textarea id="edit-textarea-${postId}" class="form-control" rows="3"> ${currentContent}</textarea>
             <div class="mt-2">
-                <button onclick="savePost(${postId}) class="btn btn-success btn-sm">Save</button>
+                <button onclick="savePost(${postId})" class="btn btn-success btn-sm">Save</button>
                 <button onclick="cancelEdit(${postId})" class="btn btn-secondary btn-sm">Cancel</button>
             </div>
         `;
@@ -84,7 +86,7 @@
             return;
         }
 
-        .fetch(`/edit/${postId}`, {
+        fetch(`/edit/${postId}`, {
             method: 'PUT',
             headers: {
                 'X-CSRFToken': csrftoken,
@@ -126,6 +128,13 @@
 
     function cancelEdit(postId){
         const contentDiv = document.getElementById(`content-${postId}`);
-        location.reload();
+
+        const originalContent = contentDiv.dataset.originalContent;
+        contentDiv.textContent = originalContent;
+
+        const editBtn = document.getElementById(`edit-btn-${postId}`);
+        if(editBtn){
+            editBtn.style.display = 'inline-block';
+        }
     }
 </script>

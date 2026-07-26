@@ -101,9 +101,18 @@ def profile(request, username):
     posts = Post.objects.filter(user=usuario).order_by("-date_time")
     page_obj = paginate(request, posts)
 
+    followers_count = usuario.followers.count()
+    following_count = usuario.following.count()
+
+    if request.user.is_authenticated:
+        is_following = Follow.objects.filter(follower=request.user, followed=usuario).exists()
+
     return render(request, "network/profile.html", {
         "perfil": usuario,
-        "page_obj": page_obj
+        "page_obj": page_obj,
+        "followers_count": followers_count,
+        "following_count": following_count,
+        "is_following": is_following
     })
 
 @login_required
