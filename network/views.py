@@ -104,6 +104,7 @@ def profile(request, username):
     followers_count = usuario.followers.count()
     following_count = usuario.following.count()
 
+    is_following = False
     if request.user.is_authenticated:
         is_following = Follow.objects.filter(follower=request.user, followed=usuario).exists()
 
