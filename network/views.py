@@ -86,10 +86,6 @@ def create_post(request):
         return HttpResponseRedirect(reverse("index"))
     return render(request, "network/create.html")
 
-def all_posts(request):
-    page_obj = paginate(request, Post.objects.all().order_by('-date_time'))
-    return render(request, "network/all_posts.html", {"page_obj": page_obj})
-
 @login_required
 def following(request):
     following_users = Follow.objects.filter(follower=request.user).values_list('followed', flat=True)

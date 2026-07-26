@@ -12,7 +12,7 @@ urlpatterns = [
 
     # Posts
     path("create", views.create_post, name="create"),
-    path("all_posts", views.all_posts, name="all_posts"),
+    path("all_posts", views.index, name="all_posts"),
     path("following", views.following, name="following"),
 
     # Perfil

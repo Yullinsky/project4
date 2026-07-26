@@ -1,69 +1,51 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    <div class="container mt-4">
-        <h2>{{ perfil.username }}</h2>
-        <div class="mb-3">
-            <span class="mr-3"><strong>Followers:</strong> {{ perfil.followers.count }}</span>
-            <span><strong>Following:</strong> {{ perfil.following.count }}</span>
-        </div>
-
-        {% if user.is_authenticated and user != perfil %}
-            <form action="{% url 'follow' perfil.username %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-primary">
-                    Follow / Unfollow
+    <div class="card">
+        <div.card-body>
+            <h3>{{ perfil.username }}</h3>
+            <div class="d-flex gap-4">
+                <div>
+                    <strong id="followers-count">
+                        followers: {{  followers_count  }}
+                    </strong> 
+                    <br/>
+                    <strong>
+                        following: {{  following_count  }}
+                    </strong>  
+                </div>
+            <div>
+            
+            {% if user.is_authenticated and user != perfil %}
+                <button id="follow-btn" onclick="toggleFollow('{{ perfil.username }}')" class="btn btn-primary mt-2">
+                    {% if is_following %}
+                        Unfollow
+                    {% else %}
+                        Follow
+                    {% endif %}
                 </button>
-            </form>
-        {% endif %}
-
-        <hr>
-        <h4>Posts</h4>
-        {% for post in posts %}
-            <div class="card mb-2 p-3">
-                <h5>{{ post.title }}</h5>
-                <p>{{ post.body }}</p>
-                <small class="text-muted">{{ post.date_time }}</small>
-            </div>
-        {% endfor %}
+            {% endif %}
+        </div> 
     </div>
 
+    <h4 class="mt-4"> Posts </h4>
+    {% include "network/posts_list.html" %}
+
+    <script>
+        function toggleFollow(username){
+            fetch(`/follow/${username}`,{
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('followers-count').textContent = data.followers_count;
+                const btn = document.getElementById('follow-btn');
+                btn.textContent = data.is_following ? 'Unfollow' : 'Follow';
+            });
+        }
+    </script>
 {% endblock %}
-
-
-<!--
-    <div class="followers">
-        <div class="number-of-followers">
-            <h4>Followers: </h4>
-            <p> {{ followers }}</p>
-        </div>
-
-        {% if user.is_authenticated and user != current_user_page %}
-            {% if current_user_page.user is followed %}
-                <button id="followButton" class="btn btn-primary"> Follow </button>
-            {% elif %}
-                <button id="unfollowButton" class="btn btn-danger"> Unfollow </button>
-            {% endif %}
-        {% endif %} 
-    </div> 
-    <div class="posts">
-        Poner todos los post en orden cronológico
-        {% for post in posts %}
-            <div class="card my-3 p-3 border">
-                <h5 class="card-title"><strong>{{ post.user.username }}</strong></h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{ post.date_time }}</h6>
-                <p class="card-text">{{ post.body }}</p>
-                <p class="text-primary">Likes: 0</p>
-            </div>
-        {% empty %}
-            <p> No hay publicaciones todavía.</p>
-        {% endfor %}
-    </did> 
--->
-
-<!--
-Profile Page: Clicking on a username should load that users profile page. This page should:
-    Display the number of followers the user has, as well as the number of people that the user follows.
-    Display all of the posts for that user, in reverse chronological order.
-    For any other user who is signed in, this page should also display a “Follow” or “Unfollow” button that will let the current user toggle whether or not they are following this user’s posts. Note that this only applies to any “other” user: a user should not be able to follow themselves.
--->

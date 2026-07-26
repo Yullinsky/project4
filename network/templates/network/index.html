@@ -1,21 +1,19 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-<!--
-Aqui van a ir los posts
--->
-    <div class="container">
-        <h2>ALL POSTS</h2>
+    <h2>All Posts</h2>
 
-        {% for post in posts %}
-            <div class="card my-3 p-3 border">
-                <h5 class="card-title"><strong>{{ post.user.username }}</strong></h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{ post.date_time }}</h6>
-                <p class="card-text">{{ post.body }}</p>
-                <p class="text-primary">Likes: 0</p>
+    {% if user.is_authenticated %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>New Post</h5>
+                <form action="{% url 'create' %}" method="POST">
+                    {% csrf_token %}
+                    <textarea name="body" class="form-control" rows="3" placeholder="What's happening?" maxlength="640" required></textarea>
+                    <button type="submit" class="btn btn-primary mt-2">Post</button>
+                </form>
             </div>
-        {% empty %}
-            <p> No hay publicaciones todavía.</p>
-        {% endfor %}
-    </div>
+        </div>
+    {% endif %}
+    {% include "network/posts_list.html" %}
 {% endblock %}

@@ -1,0 +1,131 @@
+{% for post in page_obj %}
+    <div class="post card mb-4" id="post-{{  post.id  }}">
+        <div class="card-body">
+            <div class="post-header">
+                <a href="{% url 'profile' post.user.username %}"><strong>{{  post.user.username  }}</strong><a>
+                <span class="text-muted" id="timestamp-{{ post.id }}"> {{ post.date_time|date:"F j, Y, g:i a" }}</span>
+                {% if user == post.user %}
+                    <button onclick="editPost({{ post.id }})" id="edit-btn-{{ post.id }}" class="btn btn-sm btn-outline-info float-right"> Edit </button>
+                {% endif %}
+            </div>
+
+            <div class="post-body" id="content-{{ post.id }}">{{ post.body|linebreaksbr }}</div>
+
+            <div class="post-footer">
+                <span id="likes-count-{{  post.id  }}">{{ post.total_likes }} likes</span> 
+
+                {% if user.is_authenticated %}
+                    <button onclick="toggleLike({{  post.id  }})" id="like-btn-{{  post.id  }}" class="btn btn-sm btn-outline-primary float-right">
+                        {% if user in post.likes.all %}
+                            Unlike
+                        {% else %}
+                            Like
+                        {% endif %}
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% empty %}
+    <p>No posts yet. Be the first to post!</p> 
+{% endfor %}
+
+<script>
+    function toggleLike(postId){
+        fetch(`/like/${postId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if(!response.ok){
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById(`likes-count-${postId}`).textContent = data.likes;
+
+            const btn = document.getElementById(`like-btn-${postId}`);
+            btn.textContent = data.liked ? 'Unlike' : 'Like';
+        })
+
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function editPost(postId){
+        const contentDiv = document.getElementById(`content-${postId}`);
+        const currentContent = contentDiv.textContent.trim();
+
+        contentDiv.innerHTML = `
+            <textarea id="edit-textarea-${postId}" class="form-control" rows="3"> ${currentContent}</textarea>
+            <div class="mt-2">
+                <button onclick="savePost(${postId}) class="btn btn-success btn-sm">Save</button>
+                <button onclick="cancelEdit(${postId})" class="btn btn-secondary btn-sm">Cancel</button>
+            </div>
+        `;
+
+        const editBtn = document.getElementById(`edit-btn-${postId}`);
+        if(editBtn){
+            editBtn.style.display = 'none';
+        }
+    }
+
+    function savePost(postId){
+        const textarea = document.getElementById(`edit-textarea-${postId}`);
+        const newContent = textarea.value.trim();
+
+        if(!newContent){
+            alert('Post cannot be empty');
+            return;
+        }
+
+        .fetch(`/edit/${postId}`, {
+            method: 'PUT',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: newContent })
+        })
+
+        .then(response => {
+            if(!response.ok){
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        
+        .then(data => {
+            if (data.success){
+                const contentDiv = document.getElementById(`content-${postId}`);
+                contentDiv.textContent = data.content;
+
+                if(data.timestamp){
+                    document.getElementById(`timestamp-${postId}`).textContent = data.timestamp;
+                }
+
+                const editBtn = document.getElementById(`edit-btn-${postId}`);
+                if(editBtn){
+                    editBtn.style.display = 'inline-block';
+                }
+            } else {
+                alert(data.error || 'Error saving post');
+            }
+        })
+
+        .catch(error => {
+            console.error('Error', error);
+            alert('An error occurred while saving');
+        });
+    }
+
+    function cancelEdit(postId){
+        const contentDiv = document.getElementById(`content-${postId}`);
+        location.reload();
+    }
+</script>
