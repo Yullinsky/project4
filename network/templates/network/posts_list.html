@@ -32,7 +32,7 @@
 
 <nav class="mt-4">
     {% if page_obj.has_previous %}
-        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previus</a>
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
     {% endif %}
     {% if page_obj.has_next %}
         <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
